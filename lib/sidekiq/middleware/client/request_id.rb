@@ -24,7 +24,7 @@ module Sidekiq
         end
 
         def request_id
-          @request_id ||= Thread.current[:request_id]
+          Thread.current[:request_id]
         end
 
       end
