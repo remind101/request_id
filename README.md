@@ -1,24 +1,14 @@
-# Requestid
+# RequestId
 
-TODO: Write a gem description
+Middleware for logging heroku request id's
 
 ## Installation
 
 Add this line to your application's Gemfile:
 
-    gem 'requestid'
-
-And then execute:
-
-    $ bundle
-
-Or install it yourself as:
-
-    $ gem install requestid
-
-## Usage
-
-TODO: Write usage instructions here
+```
+gem 'request_id', github: 'remind101/request_id'
+```
 
 ## Contributing
 
