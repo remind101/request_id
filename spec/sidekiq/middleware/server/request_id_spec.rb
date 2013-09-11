@@ -5,14 +5,17 @@ describe Sidekiq::Middleware::Server::RequestId do
   let(:logger) { double('Logger', info: nil) }
   let(:middleware) { described_class.new }
 
-  describe '.call' do
-    let(:worker) { double('worker', to_s: 'Worker') }
+  before { Sidekiq.stub logger: logger }
+
+  describe '#call' do
+    let(:worker) { double('worker') }
+
+    before { worker.stub_chain :class, to_s: 'Worker' }
 
     context 'when the worker is configured to log request ids' do
       let(:request_id) { SecureRandom.hex }
-      let(:item) { { 'args' => ['foo'], 'log_request_id' => true, 'request_id' => request_id } }
-
-      before { Sidekiq.stub logger: logger }
+      let(:job_id) { SecureRandom.hex }
+      let(:item) { { 'jid' => job_id, 'args' => ['foo'], 'log_request_id' => true, 'request_id' => request_id } }
 
       it 'sets a thread local to the request id' do
         Thread.current.should_receive(:[]=).with(:request_id, request_id)
@@ -21,9 +24,9 @@ describe Sidekiq::Middleware::Server::RequestId do
       end
 
       it 'logs the request id' do
-        logger.should_receive(:info).with(
-          "request_id=#{request_id} at=start worker=Worker args=[\"foo\"]"
-        )
+        Sidekiq::Logging.should_receive(:with_context)
+          .with("request_id=#{request_id} worker=Worker jid=#{job_id} args=[\"foo\"]")
+          .and_yield
         expect { |b| middleware.call(worker, item, nil, &b) }.to yield_control
       end
     end

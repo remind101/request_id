@@ -1,28 +1,23 @@
 module Sidekiq
   module Middleware
     module Server
-      class RequestId
+      class RequestId < Logging
 
         def call(worker, item, queue)
           request_id = Thread.current[:request_id] = item['request_id']
-          log(request_id, worker, item['args'].inspect) if log_request_id?(item)
-          yield
+          Sidekiq::Logging.with_context("request_id=#{request_id} worker=#{worker.class.to_s} jid=#{item['jid']} args=#{item['args'].inspect}") do
+            begin
+              start = Time.now
+              logger.info { "at=start" }
+              yield
+              logger.info { "at=done duration=#{elapsed(start)}sec" }
+            rescue Exception
+              logger.info { "at=fail duration=#{elapsed(start)}sec" }
+              raise
+            end
+          end
         ensure
           Thread.current[:request_id] = nil
-        end
-
-      private
-
-        def log(request_id, worker, args)
-          logger.info "request_id=#{request_id} at=start worker=#{worker.to_s} args=#{args}"
-        end
-
-        def log_request_id?(item)
-          item['log_request_id']
-        end
-
-        def logger
-          Sidekiq.logger
         end
 
       end

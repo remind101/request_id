@@ -4,7 +4,7 @@ require 'securerandom'
 describe Sidekiq::Middleware::Client::RequestId do
   let(:middleware) { described_class.new }
 
-  describe '.call' do
+  describe '#call' do
     context 'when the worker is an object that responds to `get_sidekiq_options`' do
       let(:worker) { double('worker', to_s: 'Worker') }
 
