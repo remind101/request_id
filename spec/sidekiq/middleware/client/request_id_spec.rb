@@ -9,10 +9,16 @@ describe Sidekiq::Middleware::Client::RequestId do
       let(:worker) { double('worker', to_s: 'Worker') }
 
       context 'when the worker is configured to log request ids' do
-        let(:logger) { double('Logger') }
+        let(:logger) { double('Logger', info: nil) }
 
         before { worker.stub get_sidekiq_options: { 'log_request_id' => true } }
         before { Sidekiq.stub logger: logger }
+
+        it 'adds the request id to the item' do
+          request_id = Thread.current[:request_id] = SecureRandom.hex
+          item = {}
+          expect { middleware.call(worker, item, nil) { } }.to change { item }.from({}).to('request_id' => request_id)
+        end
 
         it 'logs the request id' do
           request_id = Thread.current[:request_id] = SecureRandom.hex
