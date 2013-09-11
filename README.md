@@ -10,7 +10,7 @@ Middleware for logging heroku request id's. The gem includes:
 
 Add this line to your application's Gemfile:
 
-```
+```ruby
 gem 'request_id', github: 'remind101/request_id'
 ```
 
