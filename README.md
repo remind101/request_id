@@ -3,8 +3,10 @@
 Middleware for logging heroku request id's. The gem includes:
 
 * Rack middleware, which adds the request\_id to `Thread.current[:request\_id]`
-* Sidekiq Client middleware, which adds the request\_id to to the message
+* Sidekiq Client middleware, which adds the request\_id to the message
   payload.
+* Sidekiq Server middleware, which adds the request\_id to
+  `Thread.current[:request_id]` from the request\_id in the message payload.
 
 ## Installation
 
@@ -22,11 +24,25 @@ Add the rack middleware:
 use Rack::RequestId
 ```
 
-Add the sidekiq middleware, if you need it:
+
+### If you're using Sidekiq
+
+Add the client middleware.
 
 ```ruby
 Sidekiq.configure_client do |config|
   config.client_middleware do |chain|
+    chain.add Sidekiq::Middleware::Client::RequestId
+  end
+end
+```
+
+Add the server middleware.
+
+```ruby
+Sidekiq.configure_client do |config|
+  config.server_middleware do |chain|
+    chain.remove Sidekiq::Middleware::Server::Logging
     chain.add Sidekiq::Middleware::Client::RequestId
   end
 end
