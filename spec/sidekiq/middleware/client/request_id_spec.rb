@@ -1,15 +1,6 @@
 require 'spec_helper'
 require 'securerandom'
 
-def capture
-  out = StringIO.new
-  $stdout = out
-  yield
-  return out
-ensure
-  $stdout = STDOUT
-end
-
 describe Sidekiq::Middleware::Client::RequestId do
   let(:middleware) { described_class.new }
 
