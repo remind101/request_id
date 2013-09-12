@@ -28,6 +28,28 @@ module RequestId
       Thread.current[:request_id] = request_id
     end
 
+    # Public: Runs the block with the given request id set.
+    #
+    # Examples
+    #
+    #   RequestId.request_id
+    #   # => "9fee77ec37b483983839fe7a753b64d9"
+    #
+    #   RequestId.with_request_id('c8ee330973663097f50686eb17d3324e') do
+    #     RequestId.request_id
+    #     # => "c8ee330973663097f50686eb17d3324e"
+    #   end
+    #
+    #   RequestId.request_id
+    #   # => "9fee77ec37b483983839fe7a753b64d9"
+    def with_request_id(request_id)
+      last_request_id = RequestId.request_id
+      RequestId.request_id = request_id
+      yield
+    ensure
+      RequestId.request_id = last_request_id
+    end
+
   end
 end
 
