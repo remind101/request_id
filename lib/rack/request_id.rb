@@ -15,15 +15,18 @@ module Rack
   #   logger.info "request_id=#{Thread.current[:request_id]} Hello world"
   #   # => request_id=a08a6712229fb991c0e5026c246862c7 Hello world
   class RequestId
-    REQUEST_ID_HEADER = 'HTTP_HEROKU_REQUEST_ID'.freeze
+    REQUEST_HEADER  = 'HTTP_HEROKU_REQUEST_ID'.freeze
+    RESPONSE_HEADER = 'X-Request-Id'.freeze
 
     def initialize(app, options = {})
       @app = app
     end
 
     def call(env)
-      ::RequestId.request_id = env[REQUEST_ID_HEADER]
-      @app.call(env)
+      ::RequestId.request_id = env[REQUEST_HEADER]
+      status, headers, body = @app.call(env)
+      headers[RESPONSE_HEADER] ||= ::RequestId.request_id
+      [status, headers, body]
     ensure
       ::RequestId.request_id = nil
     end
