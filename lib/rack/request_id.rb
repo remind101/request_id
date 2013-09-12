@@ -23,12 +23,11 @@ module Rack
     end
 
     def call(env)
-      ::RequestId.request_id = env[REQUEST_HEADER]
-      status, headers, body = @app.call(env)
-      headers[RESPONSE_HEADER] ||= ::RequestId.request_id
-      [status, headers, body]
-    ensure
-      ::RequestId.request_id = nil
+      ::RequestId.with_request_id(env[REQUEST_HEADER]) do
+        status, headers, body = @app.call(env)
+        headers[RESPONSE_HEADER] ||= ::RequestId.request_id
+        [status, headers, body]
+      end
     end
   end
 end
