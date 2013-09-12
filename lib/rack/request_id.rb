@@ -1,3 +1,5 @@
+require 'securerandom'
+
 module Rack
 
   # Public: Rack middleware that stores the Heroku-Request-Id header in a
@@ -23,11 +25,26 @@ module Rack
     end
 
     def call(env)
-      ::RequestId.with_request_id(env[REQUEST_HEADER]) do
+      ::RequestId.with_request_id(request_id(env)) do
         status, headers, body = @app.call(env)
         headers[RESPONSE_HEADER] ||= ::RequestId.request_id
         [status, headers, body]
       end
     end
+
+  private
+
+    def request_id(env)
+      env[REQUEST_HEADER] || generate
+    end
+
+    def generate
+      generate? && SecureRandom.hex(16)
+    end
+
+    def generate?
+      ::RequestId.configuration.generate
+    end
+
   end
 end

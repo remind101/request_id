@@ -1,6 +1,8 @@
 require 'request_id/version'
 
 module RequestId
+  autoload :Configuration, 'request_id/configuration'
+
   class << self
 
     # Public: Retrieve the current request_id, which is generally set by the
@@ -48,6 +50,21 @@ module RequestId
       yield
     ensure
       RequestId.request_id = last_request_id
+    end
+
+    def configuration
+      @configuration ||= Configuration.new
+    end
+
+    # Public: Configure RequestId.
+    #
+    # Examples
+    #
+    #   RequestId.configure do |config|
+    #     config.generate = false
+    #   end
+    def configure
+      yield configuration
     end
 
   end
