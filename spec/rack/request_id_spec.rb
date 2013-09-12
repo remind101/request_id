@@ -2,7 +2,7 @@ require 'spec_helper'
 require 'securerandom'
 
 describe Rack::RequestId do
-  let(:app) { double('app', call: nil) }
+  let(:app) { double('app', call: [200, {}, ['Body']]) }
   let(:middleware) { described_class.new app }
 
   describe '.call' do
@@ -13,6 +13,11 @@ describe Rack::RequestId do
       app.should_receive(:call)
       Thread.current.should_receive(:[]=).with(:request_id, nil)
       middleware.call('HTTP_HEROKU_REQUEST_ID' => request_id)
+    end
+
+    it 'sets the X-Request-Id header in the response' do
+      status, headers, body = middleware.call('HTTP_HEROKU_REQUEST_ID' => request_id)
+      expect(headers['X-Request-Id']).to eq request_id
     end
 
     context 'when an exception is raised' do
