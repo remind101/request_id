@@ -14,7 +14,7 @@ Throughout the system. It includes:
 Add this line to your application's Gemfile:
 
 ```ruby
-gem 'request_id', github: 'remind101/request_id'
+gem 'request_id'
 ```
 
 ## Usage
@@ -24,7 +24,6 @@ Add the rack middleware:
 ```ruby
 use Rack::RequestId
 ```
-
 
 ### If you're using Sidekiq
 
