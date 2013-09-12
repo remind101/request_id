@@ -1,6 +1,7 @@
 # RequestId
 
-Middleware for logging heroku request id's. The gem includes:
+This is a gem with a collection of middleware for easily cascading [Heroku request id's](https://devcenter.heroku.com/articles/http-request-id)
+Throughout the system. It includes:
 
 * Rack middleware, which adds the request\_id to `Thread.current[:request\_id]`
 * Sidekiq Client middleware, which adds the request\_id to the message
@@ -40,7 +41,11 @@ end
 Add the server middleware.
 
 ```ruby
-Sidekiq.configure_client do |config|
+Sidekiq.configure_server do |config|
+  config.client_middleware do |chain|
+    chain.add Sidekiq::Middleware::Client::RequestId
+  end
+
   config.server_middleware do |chain|
     chain.remove Sidekiq::Middleware::Server::Logging
     chain.add Sidekiq::Middleware::Client::RequestId
