@@ -22,10 +22,10 @@ module Rack
     end
 
     def call(env)
-      Thread.current[:request_id] = env[REQUEST_ID_HEADER]
+      ::RequestId.request_id = env[REQUEST_ID_HEADER]
       @app.call(env)
     ensure
-      Thread.current[:request_id] = nil
+      ::RequestId.request_id = nil
     end
   end
 end
