@@ -1,4 +1,9 @@
 require 'request_id/version'
+require 'request_id/sidekiq' if defined?(Sidekiq)
+
+module Rack
+  autoload :RequestId, 'rack/request_id'
+end
 
 module RequestId
   autoload :Configuration, 'request_id/configuration'
@@ -67,21 +72,5 @@ module RequestId
       yield configuration
     end
 
-  end
-end
-
-module Rack
-  autoload :RequestId, 'rack/request_id'
-end
-
-module Sidekiq
-  module Middleware
-    module Client
-      autoload :RequestId, 'sidekiq/middleware/client/request_id'
-    end
-
-    module Server
-      autoload :RequestId, 'sidekiq/middleware/server/request_id'
-    end
   end
 end
