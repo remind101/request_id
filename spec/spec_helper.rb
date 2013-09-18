@@ -1,3 +1,6 @@
+# Ensure the Sidekiq module is defined.
+module Sidekiq; end
+
 require 'bundler/setup'
 Bundler.require :default, :test
 
