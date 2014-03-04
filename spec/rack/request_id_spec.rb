@@ -12,11 +12,11 @@ describe Rack::RequestId do
       Thread.current.should_receive(:[]=).with(:request_id, request_id)
       app.should_receive(:call)
       Thread.current.should_receive(:[]=).with(:request_id, nil)
-      middleware.call('HTTP_HEROKU_REQUEST_ID' => request_id)
+      middleware.call('HTTP_X_REQUEST_ID' => request_id)
     end
 
     it 'sets the X-Request-Id header in the response' do
-      status, headers, body = middleware.call('HTTP_HEROKU_REQUEST_ID' => request_id)
+      status, headers, body = middleware.call('HTTP_X_REQUEST_ID' => request_id)
       expect(headers['X-Request-Id']).to eq request_id
     end
 
@@ -25,7 +25,7 @@ describe Rack::RequestId do
         Thread.current.should_receive(:[]=).with(:request_id, request_id)
         app.should_receive(:call).and_raise
         Thread.current.should_receive(:[]=).with(:request_id, nil)
-        expect { middleware.call('HTTP_HEROKU_REQUEST_ID' => request_id) }.to raise_error
+        expect { middleware.call('HTTP_X_REQUEST_ID' => request_id) }.to raise_error
       end
     end
   end
