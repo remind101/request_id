@@ -13,22 +13,11 @@ module Sidekiq
         end
 
         def call(worker, item, queue)
-          request_id = ::RequestId.request_id = item['request_id']
-          Sidekiq::Logging.with_context("request_id=#{request_id} worker=#{worker.class.to_s} jid=#{item['jid']} args=#{item['args'].inspect}") do
-            begin
-              start = Time.now
-              logger.info { "at=start" }
-              yield
-              logger.info { "at=done duration=#{elapsed(start)}sec" }
-            rescue Exception
-              logger.info { "at=fail duration=#{elapsed(start)}sec" }
-              raise
-            end
-          end
+          ::RequestId.request_id = item['request_id']
+          yield
         ensure
           ::RequestId.request_id = nil unless self.class.no_reset
         end
-
       end
     end
   end
