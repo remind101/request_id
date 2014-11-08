@@ -22,7 +22,8 @@ gem 'request_id'
 Add the rack middleware:
 
 ```ruby
-use Rack::RequestId
+# If no options are passed this is the default
+use Rack::RequestId, key: :request_id, value: -> (env) { env['HTTP_X_REQUEST_ID'], response_header: 'X-Request-Id' }
 ```
 
 ### If you're using Sidekiq
@@ -32,7 +33,8 @@ Add the client middleware.
 ```ruby
 Sidekiq.configure_client do |config|
   config.client_middleware do |chain|
-    chain.add Sidekiq::Middleware::Client::RequestId
+    # If no options are passed this is the default
+    chain.add Sidekiq::Middleware::Client::RequestId, key: :request_id, value: -> { ::RequestId.request_id }
   end
 end
 ```
@@ -42,14 +44,26 @@ Add the server middleware.
 ```ruby
 Sidekiq.configure_server do |config|
   config.client_middleware do |chain|
-    chain.add Sidekiq::Middleware::Client::RequestId
+    # If no options are passed this is the default
+    chain.add Sidekiq::Middleware::Client::RequestId, key: :request_id, value: -> { ::RequestId.request_id }
   end
 
   config.server_middleware do |chain|
     chain.remove Sidekiq::Middleware::Server::Logging
-    chain.add Sidekiq::Middleware::Client::RequestId
+    # If no options are passed this is the default
+    chain.add Sidekiq::Middleware::Client::RequestId, key: :request_id, value: -> { ::RequestId.request_id }
   end
 end
+```
+
+### If you're using Faraday
+
+Add the middleware.
+
+```ruby
+  # If no options are passed this is the default
+  builder.use Faraday::RequestId, key: :request_id, header: 'X-Request-Id'
+
 ```
 
 ## Contributing

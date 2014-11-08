@@ -2,15 +2,27 @@ module Sidekiq
   module Middleware
     module Client
       class RequestId
+        def initialize(options = nil)
+          @options = options || default_options
+        end
+
         def call(worker, item, queue)
-          item['request_id'] = request_id if request_id
+          item[id_key] = id_value if id_value
           yield
         end
 
       private
 
-        def request_id
-          ::RequestId.request_id
+        def id_key
+          @options[:key].to_s
+        end
+
+        def id_value
+          @options[:value].call()
+        end
+
+        def default_options
+          { key: :request_id, value: -> { ::RequestId.request_id } }
         end
       end
     end
