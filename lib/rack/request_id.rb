@@ -2,7 +2,7 @@ require 'securerandom'
 
 module Rack
 
-  # Public: Rack middleware that stores the Heroku-Request-Id header in a
+  # Public: Rack middleware that stores the X-Request-Id header in a
   # thread local variable.
   #
   # Heroku has a labs feature called request_id, which can be used to tracking
@@ -12,39 +12,35 @@ module Rack
   #
   # Examples
   #
-  #   use Rack::LogRequestId
+  #   use Rack::RequestId, key: :request_id, value: -> (env) { env['HTTP_X_REQUEST_ID'] }, response_header: 'X-Request-Id'
   #
-  #   logger.info "request_id=#{Thread.current[:request_id]} Hello world"
+  #   logger.info "request_id=#{RequestId.request_id} Hello world"
   #   # => request_id=a08a6712229fb991c0e5026c246862c7 Hello world
   class RequestId
     REQUEST_HEADER  = 'HTTP_X_REQUEST_ID'.freeze
     RESPONSE_HEADER = 'X-Request-Id'.freeze
 
-    def initialize(app, options = {})
+    def initialize(app, options = nil)
       @app = app
+      @options = options || default_options
     end
 
     def call(env)
-      ::RequestId.with_request_id(request_id(env)) do
+      ::RequestId.with(@options[:key], @options[:value].call(env)) do
         status, headers, body = @app.call(env)
-        headers[RESPONSE_HEADER] ||= ::RequestId.request_id
+
+        if @options[:response_header]
+          headers[@options[:response_header]] ||= ::RequestId.get(@options[:key])
+        end
+
         [status, headers, body]
       end
     end
 
   private
 
-    def request_id(env)
-      env[REQUEST_HEADER] || generate
+    def default_options
+      { key: :request_id, value: lambda { |env| env[REQUEST_HEADER] }, response_header: RESPONSE_HEADER }
     end
-
-    def generate
-      generate? && SecureRandom.hex(16)
-    end
-
-    def generate?
-      ::RequestId.configuration.generate
-    end
-
   end
 end

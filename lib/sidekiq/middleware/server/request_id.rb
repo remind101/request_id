@@ -12,12 +12,22 @@ module Sidekiq
           attr_accessor :no_reset
         end
 
+        def initialize(options = nil)
+          @options = options || default_options
+        end
+
         def call(worker, item, queue)
-          ::RequestId.request_id = item['request_id']
+          ::RequestId.set(@options[:key], @options[:value].call(item))
           yield
         ensure
-          ::RequestId.request_id = nil unless self.class.no_reset
+          ::RequestId.set(@options[:key], nil) unless self.class.no_reset
         end
+
+        private
+
+          def default_options
+            { key: :request_id, value: lambda { |item| item['request_id'] } }
+          end
       end
     end
   end

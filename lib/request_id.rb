@@ -20,7 +20,7 @@ module RequestId
     #
     # Returns the String request id.
     def request_id
-      Thread.current[:request_id]
+      get(:request_id)
     end
 
     # Internal: Set the current request_id.
@@ -32,7 +32,7 @@ module RequestId
     #
     # Returns the new String request id.
     def request_id=(request_id)
-      Thread.current[:request_id] = request_id
+      set(:request_id, request_id)
     end
 
     # Public: Runs the block with the given request id set.
@@ -49,12 +49,28 @@ module RequestId
     #
     #   RequestId.request_id
     #   # => "9fee77ec37b483983839fe7a753b64d9"
-    def with_request_id(request_id)
-      last_request_id = RequestId.request_id
-      RequestId.request_id = request_id
+    def with_request_id(request_id, &block)
+      with(:request_id, request_id, &block)
+    end
+
+    # Public: Runs the block with the given id key and value set.
+    def with(id_key, id_value)
+      last_id = RequestId.get(id_key)
+      RequestId.set(id_key, id_value)
       yield
     ensure
-      RequestId.request_id = last_request_id
+      RequestId.set(id_key, last_id)
+    end
+
+    # Public: Retrieve the given id, which is generally set by the
+    # Rack or Sidekiq middleware.
+    def get(id_key)
+      Thread.current[id_key]
+    end
+
+    # Public: Set the given id to the given value
+    def set(id_key, id_value)
+      Thread.current[id_key] = id_value
     end
 
     def configuration

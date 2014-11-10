@@ -3,7 +3,8 @@ require 'securerandom'
 
 describe Rack::RequestId do
   let(:app) { double('app', call: [200, {}, ['Body']]) }
-  let(:middleware) { described_class.new app }
+  let(:config) { { key: :request_id, value: lambda { |env| env['HTTP_X_REQUEST_ID'] }, response_header: 'X-Request-Id' } }
+  let(:middleware) { described_class.new app, config }
 
   describe '.call' do
     let(:request_id) { SecureRandom.hex }
@@ -28,5 +29,32 @@ describe Rack::RequestId do
         expect { middleware.call('HTTP_X_REQUEST_ID' => request_id) }.to raise_error
       end
     end
+  end
+
+  describe 'custom middleware configuration' do
+    let(:config) { { key: :session_id, value: lambda { |env| env['HTTP_X_SESSION_ID'] }, response_header: 'X-Session-Id' } }
+    let(:session_id) { SecureRandom.hex }
+
+    it 'stores the custom id in a thread local' do
+      Thread.current.should_receive(:[]=).with(:session_id, session_id)
+      app.should_receive(:call)
+      Thread.current.should_receive(:[]=).with(:session_id, nil)
+      middleware.call('HTTP_X_SESSION_ID' => session_id)
+    end
+
+    it 'sets the X-Session-Id header in the response' do
+      status, headers, body = middleware.call('HTTP_X_SESSION_ID' => session_id)
+      expect(headers['X-Session-Id']).to eq session_id
+    end
+
+    context 'when an exception is raised' do
+      it 'still sets the session_id back to nil' do
+        Thread.current.should_receive(:[]=).with(:session_id, session_id)
+        app.should_receive(:call).and_raise
+        Thread.current.should_receive(:[]=).with(:session_id, nil)
+        expect { middleware.call('HTTP_X_SESSION_ID' => session_id) }.to raise_error
+      end
+    end
+
   end
 end

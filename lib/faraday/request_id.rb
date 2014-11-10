@@ -5,6 +5,11 @@ module Faraday
   class RequestId < Faraday::Middleware
     HEADER = 'X-Request-Id'.freeze
 
+    def initialize(app, options = nil)
+      super(app)
+      @options = options || default_options
+    end
+
     def call(env)
       set_header(env) if needs_header?(env)
       @app.call(env)
@@ -13,15 +18,15 @@ module Faraday
   private
 
     def needs_header?(env)
-      request_id && !env[:request_headers][HEADER]
+      ::RequestId.get(@options[:key]) && !env[:request_headers][@options[:header]]
     end
 
     def set_header(env)
-      env[:request_headers][HEADER] = request_id
+      env[:request_headers][@options[:header]] = ::RequestId.get(@options[:key])
     end
 
-    def request_id
-      ::RequestId.request_id
+    def default_options
+      { key: :request_id, header: HEADER }
     end
   end
 end
