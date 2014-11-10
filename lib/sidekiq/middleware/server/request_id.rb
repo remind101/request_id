@@ -26,7 +26,7 @@ module Sidekiq
         private
 
           def default_options
-            { key: :request_id, value: -> (item) { item['request_id'] } }
+            { key: :request_id, value: lambda { |item| item['request_id'] } }
           end
       end
     end

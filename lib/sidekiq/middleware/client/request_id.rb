@@ -22,7 +22,7 @@ module Sidekiq
         end
 
         def default_options
-          { key: :request_id, value: -> { ::RequestId.request_id } }
+          { key: :request_id, value: lambda { ::RequestId.request_id } }
         end
       end
     end

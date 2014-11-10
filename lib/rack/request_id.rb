@@ -2,7 +2,7 @@ require 'securerandom'
 
 module Rack
 
-  # Public: Rack middleware that stores the Heroku-Request-Id header in a
+  # Public: Rack middleware that stores the X-Request-Id header in a
   # thread local variable.
   #
   # Heroku has a labs feature called request_id, which can be used to tracking
@@ -40,7 +40,7 @@ module Rack
   private
 
     def default_options
-      { key: :request_id, value: -> (env) { env[REQUEST_HEADER] }, response_header: RESPONSE_HEADER }
+      { key: :request_id, value: lambda { |env| env[REQUEST_HEADER] }, response_header: RESPONSE_HEADER }
     end
   end
 end
