@@ -30,7 +30,7 @@ module Rack
         status, headers, body = @app.call(env)
 
         if @options[:response_header]
-          headers[@options[:response_header]] ||= ::RequestId.get(@options[:key])
+          headers[@options[:response_header]] ||= ::RequestId.get(@options[:key]).to_s
         end
 
         [status, headers, body]
