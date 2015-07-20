@@ -26,7 +26,7 @@ module Rack
     end
 
     def call(env)
-      ::RequestId.with(@options[:key], @options[:value].call(env)) do
+      ::RequestId.with(@options[:key], @options[:value].call(env) || generate) do
         status, headers, body = @app.call(env)
 
         if @options[:response_header]
@@ -42,5 +42,10 @@ module Rack
     def default_options
       { key: :request_id, value: lambda { |env| env[REQUEST_HEADER] }, response_header: RESPONSE_HEADER }
     end
+
+    def generate
+      SecureRandom.uuid if ::RequestId.configuration.generate
+    end
+
   end
 end

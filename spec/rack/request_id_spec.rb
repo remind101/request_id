@@ -21,6 +21,36 @@ describe Rack::RequestId do
       expect(headers['X-Request-Id']).to eq request_id
     end
 
+    context 'when config.generate == false' do
+      before do
+        RequestId.configure { |c| c.generate = false }
+      end
+
+      after do
+        RequestId.configure { |c| c.generate = true }
+      end
+
+      it 'does not generate a request id if none is present' do
+        status, headers, body = middleware.call({})
+        expect(headers['X-Request-Id']).to be_empty
+      end
+    end
+
+    context 'when config.generate == true' do
+      before do
+        RequestId.configure { |c| c.generate = true }
+      end
+
+      after do
+        RequestId.configure { |c| c.generate = false }
+      end
+
+      it 'generates a request id if none is present' do
+        status, headers, body = middleware.call({})
+        expect(headers['X-Request-Id']).to_not be_empty
+      end
+    end
+
     context 'when an exception is raised' do
       it 'still sets the request_id back to nil' do
         Thread.current.should_receive(:[]=).with(:request_id, request_id)
