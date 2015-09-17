@@ -6,7 +6,7 @@ module Sidekiq
           @options = options || default_options
         end
 
-        def call(worker, item, queue)
+        def call(worker, item, queue, redis_pool = nil)
           item[id_key] = id_value if id_value
           yield
         end
