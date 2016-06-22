@@ -47,7 +47,7 @@ Sidekiq.configure_server do |config|
   end
 
   config.server_middleware do |chain|
-    chain.add Sidekiq::Middleware::Client::RequestId
+    chain.add Sidekiq::Middleware::Server::RequestId
   end
 end
 ```
@@ -86,7 +86,7 @@ Sidekiq.configure_server do |config|
   end
 
   config.server_middleware do |chain|
-    chain.add Sidekiq::Middleware::Client::RequestId, key: :session_id, value: lambda { |item| item['session_id'] }
+    chain.add Sidekiq::Middleware::Server::RequestId, key: :session_id, value: lambda { |item| item['session_id'] }
   end
 end
 
