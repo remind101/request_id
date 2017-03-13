@@ -56,7 +56,7 @@ describe Rack::RequestId do
         Thread.current.should_receive(:[]=).with(:request_id, request_id)
         app.should_receive(:call).and_raise
         Thread.current.should_receive(:[]=).with(:request_id, nil)
-        expect { middleware.call('HTTP_X_REQUEST_ID' => request_id) }.to raise_error
+        expect { middleware.call('HTTP_X_REQUEST_ID' => request_id) }.to raise_error(RuntimeError)
       end
     end
   end
@@ -82,7 +82,7 @@ describe Rack::RequestId do
         Thread.current.should_receive(:[]=).with(:session_id, session_id)
         app.should_receive(:call).and_raise
         Thread.current.should_receive(:[]=).with(:session_id, nil)
-        expect { middleware.call('HTTP_X_SESSION_ID' => session_id) }.to raise_error
+        expect { middleware.call('HTTP_X_SESSION_ID' => session_id) }.to raise_error(RuntimeError)
       end
     end
 
