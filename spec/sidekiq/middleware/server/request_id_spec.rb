@@ -30,7 +30,7 @@ describe Sidekiq::Middleware::Server::RequestId do
     context 'when an error is raised' do
       it 'ensures that the thread local is set to nil, and raises the error' do
         Thread.current.should_receive(:[]=).with(:request_id, nil).twice
-        expect { middleware.call(worker, {}, nil) { raise } }.to raise_error
+        expect { middleware.call(worker, {}, nil) { raise } }.to raise_error(RuntimeError)
       end
     end
   end
