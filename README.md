@@ -52,6 +52,20 @@ Sidekiq.configure_server do |config|
 end
 ```
 
+If you're using other Sidekiq middleware that wraps job execution, consider
+using Sidekiq's
+[`chain.prepend`](http://www.rubydoc.info/github/mperham/sidekiq/Sidekiq%2FMiddleware%2FChain%3Aprepend)
+in place of `chain.add` to push the `request_id` middleware to the top of the
+stack so it runs before other possibly dependent middleware. For example:
+
+```ruby
+Sidekiq.configure_client do |config|
+  config.client_middleware do |chain|
+    chain.prepend Sidekiq::Middleware::Client::RequestId
+  end
+end
+```
+
 ### If you're using Faraday
 
 Add the middleware.
