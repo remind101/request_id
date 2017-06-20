@@ -15,7 +15,7 @@ describe RequestId do
 
   describe '.request_id=' do
     it 'sets Thread.current[:request_id]' do
-      Thread.current.should_receive(:[]=).with(:request_id, request_id)
+      expect(Thread.current).to receive(:[]=).with(:request_id, request_id)
       described_class.request_id = request_id
     end
   end

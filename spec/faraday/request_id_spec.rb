@@ -8,7 +8,7 @@ describe Faraday::RequestId do
   describe '.call' do
     context 'when a request_id is set' do
       before do
-        RequestId.stub(get: SecureRandom.hex)
+        allow(RequestId).to receive(:get).and_return(SecureRandom.hex)
       end
 
       it 'adds the X-Request-Id header' do
@@ -20,7 +20,7 @@ describe Faraday::RequestId do
 
     context 'when no request_id is set' do
       before do
-        RequestId.stub(get: nil)
+        allow(RequestId).to receive(:get).and_return(nil)
       end
 
       it 'does not add the X-Request-Id header' do

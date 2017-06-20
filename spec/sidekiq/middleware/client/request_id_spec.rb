@@ -17,7 +17,7 @@ describe Sidekiq::Middleware::Client::RequestId do
       end
 
       context 'when the worker is not configured to log request ids' do
-        before { worker.stub get_sidekiq_options: {} }
+        before { allow(worker).to receive(:get_sidekiq_options).and_return({}) }
 
         it 'does not log the request' do
           expect { |b| middleware.call(worker, {}, nil, &b) }.to yield_control
