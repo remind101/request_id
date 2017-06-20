@@ -7,7 +7,7 @@ describe Sidekiq::Middleware::Server::RequestId do
   describe '#call' do
     let(:worker) { double('worker') }
 
-    before { worker.stub_chain :class, to_s: 'Worker' }
+    before { allow(worker).to receive_message_chain(:class, :to_s).and_return('Worker') }
 
     context 'when the worker is configured to log request ids' do
       let(:request_id) { SecureRandom.hex }
@@ -15,8 +15,8 @@ describe Sidekiq::Middleware::Server::RequestId do
       let(:item) { { 'jid' => job_id, 'args' => ['foo'], 'request_id' => request_id } }
 
       it 'sets a thread local to the request id' do
-        Thread.current.should_receive(:[]=).with(:request_id, request_id)
-        Thread.current.should_receive(:[]=).with(:request_id, nil)
+        expect(Thread.current).to receive(:[]=).with(:request_id, request_id)
+        expect(Thread.current).to receive(:[]=).with(:request_id, nil)
         expect { |b| middleware.call(worker, item, nil, &b) }.to yield_control
       end
     end
@@ -29,7 +29,7 @@ describe Sidekiq::Middleware::Server::RequestId do
 
     context 'when an error is raised' do
       it 'ensures that the thread local is set to nil, and raises the error' do
-        Thread.current.should_receive(:[]=).with(:request_id, nil).twice
+        expect(Thread.current).to receive(:[]=).with(:request_id, nil).twice
         expect { middleware.call(worker, {}, nil) { raise } }.to raise_error(RuntimeError)
       end
     end

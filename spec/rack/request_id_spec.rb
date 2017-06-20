@@ -10,9 +10,9 @@ describe Rack::RequestId do
     let(:request_id) { SecureRandom.hex }
 
     it 'stores the request_id in a thread local' do
-      Thread.current.should_receive(:[]=).with(:request_id, request_id)
-      app.should_receive(:call)
-      Thread.current.should_receive(:[]=).with(:request_id, nil)
+      expect(Thread.current).to receive(:[]=).with(:request_id, request_id)
+      expect(app).to receive(:call)
+      expect(Thread.current).to receive(:[]=).with(:request_id, nil)
       middleware.call('HTTP_X_REQUEST_ID' => request_id)
     end
 
@@ -53,9 +53,9 @@ describe Rack::RequestId do
 
     context 'when an exception is raised' do
       it 'still sets the request_id back to nil' do
-        Thread.current.should_receive(:[]=).with(:request_id, request_id)
-        app.should_receive(:call).and_raise
-        Thread.current.should_receive(:[]=).with(:request_id, nil)
+        expect(Thread.current).to receive(:[]=).with(:request_id, request_id)
+        expect(app).to receive(:call).and_raise
+        expect(Thread.current).to receive(:[]=).with(:request_id, nil)
         expect { middleware.call('HTTP_X_REQUEST_ID' => request_id) }.to raise_error(RuntimeError)
       end
     end
@@ -66,9 +66,9 @@ describe Rack::RequestId do
     let(:session_id) { SecureRandom.hex }
 
     it 'stores the custom id in a thread local' do
-      Thread.current.should_receive(:[]=).with(:session_id, session_id)
-      app.should_receive(:call)
-      Thread.current.should_receive(:[]=).with(:session_id, nil)
+      expect(Thread.current).to receive(:[]=).with(:session_id, session_id)
+      expect(app).to receive(:call)
+      expect(Thread.current).to receive(:[]=).with(:session_id, nil)
       middleware.call('HTTP_X_SESSION_ID' => session_id)
     end
 
@@ -79,9 +79,9 @@ describe Rack::RequestId do
 
     context 'when an exception is raised' do
       it 'still sets the session_id back to nil' do
-        Thread.current.should_receive(:[]=).with(:session_id, session_id)
-        app.should_receive(:call).and_raise
-        Thread.current.should_receive(:[]=).with(:session_id, nil)
+        expect(Thread.current).to receive(:[]=).with(:session_id, session_id)
+        expect(app).to receive(:call).and_raise
+        expect(Thread.current).to receive(:[]=).with(:session_id, nil)
         expect { middleware.call('HTTP_X_SESSION_ID' => session_id) }.to raise_error(RuntimeError)
       end
     end
