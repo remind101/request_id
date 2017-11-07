@@ -3,7 +3,7 @@ require 'securerandom'
 
 describe Rack::RequestId do
   let(:app) { double('app', call: [200, {}, ['Body']]) }
-  let(:config) { { key: :request_id, value: lambda { |env| env['HTTP_X_REQUEST_ID'] }, response_header: 'X-Request-Id' } }
+  let(:config) { { headers: [ { key: :request_id, value: lambda { |env| env['HTTP_X_REQUEST_ID'] }, response_header: 'X-Request-Id' } ] } }
   let(:middleware) { described_class.new app, config }
 
   describe '.call' do
@@ -62,7 +62,7 @@ describe Rack::RequestId do
   end
 
   describe 'custom middleware configuration' do
-    let(:config) { { key: :session_id, value: lambda { |env| env['HTTP_X_SESSION_ID'] }, response_header: 'X-Session-Id' } }
+    let(:config) { { headers: [ { key: :session_id, value: lambda { |env| env['HTTP_X_SESSION_ID'] }, response_header: 'X-Session-Id' } ] } }
     let(:session_id) { SecureRandom.hex }
 
     it 'stores the custom id in a thread local' do

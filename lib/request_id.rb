@@ -50,16 +50,23 @@ module RequestId
     #   RequestId.request_id
     #   # => "9fee77ec37b483983839fe7a753b64d9"
     def with_request_id(request_id, &block)
-      with(:request_id, request_id, &block)
+      with([ { key: :request_id, value: request_id } ], &block)
     end
 
     # Public: Runs the block with the given id key and value set.
-    def with(id_key, id_value)
-      last_id = RequestId.get(id_key)
-      RequestId.set(id_key, id_value)
+    def with(kvs)
+      last_kvs = kvs.map do |kv|
+        last_id = RequestId.get(kv[:key])
+        { key: kv[:key], value: last_id }
+      end
+      kvs.each do |kv|
+        RequestId.set(kv[:key], kv[:value])
+      end
       yield
     ensure
-      RequestId.set(id_key, last_id)
+      last_kvs.each do |kv|
+        RequestId.set(kv[:key], kv[:value])
+      end
     end
 
     # Public: Retrieve the given id, which is generally set by the

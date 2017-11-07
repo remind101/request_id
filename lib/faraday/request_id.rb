@@ -11,22 +11,24 @@ module Faraday
     end
 
     def call(env)
-      set_header(env) if needs_header?(env)
+      @options[:headers].each do |header|
+        set_header(env, header) if needs_header?(env, header)
+      end
       @app.call(env)
     end
 
   private
 
-    def needs_header?(env)
-      ::RequestId.get(@options[:key]) && !env[:request_headers][@options[:header]]
+    def needs_header?(env, header)
+      ::RequestId.get(header[:key]) && !env[:request_headers][header[:header]]
     end
 
-    def set_header(env)
-      env[:request_headers][@options[:header]] = ::RequestId.get(@options[:key])
+    def set_header(env, header)
+      env[:request_headers][header[:header]] = ::RequestId.get(header[:key])
     end
 
     def default_options
-      { key: :request_id, header: HEADER }
+      { headers: [ { key: :request_id, header: HEADER } ] }
     end
   end
 end
