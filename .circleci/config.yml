@@ -40,8 +40,6 @@ jobs:
         paths:
           - ~/request_id/vendor/bundle
 
-      - run: cp -f config/circleci/database.yml config/database.yml
-
       # save the entire project. the rest of the steps won't check out the
       # codebase, but rather will download the source code from the circleci
       # cache.
