@@ -12,9 +12,6 @@ workflows:
   build-and-test:
     jobs:
       - build
-      - bundle_audit_check:
-          requires:
-            - build
       - rspec:
           requires:
             - build
@@ -47,21 +44,6 @@ jobs:
           root: ~/request_id
           paths:
             - .
-
-  bundle_audit_check:
-    <<: *ALL_JOB_COMMON
-
-    docker:
-      - image: *RUBY_IMAGE
-
-    steps:
-      # TODO: get the codebase from the cache and set up bundler. this is
-      # shared between several jobs so we could pull it out.
-      - attach_workspace:
-          at: ~/request_id
-      - run: bundle install --path vendor/bundle
-
-      - run: bundle exec bundle-audit check --update
 
   rspec:
     <<: *ALL_JOB_COMMON
