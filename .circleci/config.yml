@@ -92,7 +92,7 @@ jobs:
 
       - run: circleci tests glob "spec/**/*_spec.rb" | circleci tests split --split-by=timings > .specs_to_run
       - run: echo "running $(cat .specs_to_run)"
-      - run: bundle exec rspec --colour --profile 10 --format RspecJunitFormatter --out /tmp/test-results/rspec.xml --format progress $(cat .specs_to_run)
+      - run: bundle exec rspec --colour --profile 10 --out /tmp/test-results/rspec.xml --format progress $(cat .specs_to_run)
 
       - store_test_results:
           path: /tmp/test-results
