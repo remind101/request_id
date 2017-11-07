@@ -77,35 +77,35 @@ Add the middleware.
 
 ### Customization
 
-You can customize each middleware to store the value of any header you like in the same fashion. For instance,
+You can customize each middleware to store the value of any headers you like in the same fashion. For instance,
 if you wanted to track a `X-Request-Id` header as well as a `X-Session-Id` header, you could do so like this:
 
 ```ruby
 # Rack
 use Rack::RequestId
-use Rack::RequestId, key: :request_id, value: -> (env) { env['HTTP_X_SESSION_ID'], response_header: 'X-Session-Id' }
+use Rack::RequestId, headers: [ { key: :request_id, value: -> (env) { env['HTTP_X_SESSION_ID'], response_header: 'X-Session-Id' } } ]
 
 # Sidekiq
 Sidekiq.configure_client do |config|
   config.client_middleware do |chain|
     chain.add Sidekiq::Middleware::Client::RequestId
-    chain.add Sidekiq::Middleware::Client::RequestId, key: :session_id, value: -> { ::RequestId.get(:session_id) }
+    chain.add Sidekiq::Middleware::Client::RequestId, headers: [ { key: :session_id, value: -> { ::RequestId.get(:session_id) } } ]
   end
 end
 
 Sidekiq.configure_server do |config|
   config.client_middleware do |chain|
     chain.add Sidekiq::Middleware::Client::RequestId
-    chain.add Sidekiq::Middleware::Client::RequestId, key: :session_id, value: -> { ::RequestId.get(:session_id) }
+    chain.add Sidekiq::Middleware::Client::RequestId, headers: [ { key: :session_id, value: -> { ::RequestId.get(:session_id) } } ]
   end
 
   config.server_middleware do |chain|
-    chain.add Sidekiq::Middleware::Server::RequestId, key: :session_id, value: lambda { |item| item['session_id'] }
+    chain.add Sidekiq::Middleware::Server::RequestId, headers: [ { key: :session_id, value: lambda { |item| item['session_id'] } } ]
   end
 end
 
 # Faraday
-builder.use Faraday::RequestId, key: :session_id, header: 'X-Session-Id'
+builder.use Faraday::RequestId, headers: [ { key: :session_id, header: 'X-Session-Id' } ]
 ```
 
 ## Contributing

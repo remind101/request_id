@@ -3,7 +3,7 @@ require 'securerandom'
 
 describe Rack::RequestId do
   let(:app) { double('app', call: [200, {}, ['Body']]) }
-  let(:config) { { key: :request_id, value: lambda { |env| env['HTTP_X_REQUEST_ID'] }, response_header: 'X-Request-Id' } }
+  let(:config) { { headers: [ { key: :request_id, value: lambda { |env| env['HTTP_X_REQUEST_ID'] }, response_header: 'X-Request-Id' } ] } }
   let(:middleware) { described_class.new app, config }
 
   describe '.call' do
@@ -62,27 +62,35 @@ describe Rack::RequestId do
   end
 
   describe 'custom middleware configuration' do
-    let(:config) { { key: :session_id, value: lambda { |env| env['HTTP_X_SESSION_ID'] }, response_header: 'X-Session-Id' } }
+    let(:config) { { headers: [
+      { key: :session_id, value: lambda { |env| env['HTTP_X_SESSION_ID'] }, response_header: 'X-Session-Id' },
+      { key: :client_id, value: lambda { |env| env['HTTP_X_CLIENT_ID'] }, response_header: 'X-Client-Id' } ] } }
     let(:session_id) { SecureRandom.hex }
+    let(:client_id) { SecureRandom.hex }
 
     it 'stores the custom id in a thread local' do
       expect(Thread.current).to receive(:[]=).with(:session_id, session_id)
+      expect(Thread.current).to receive(:[]=).with(:client_id, client_id)
       expect(app).to receive(:call)
       expect(Thread.current).to receive(:[]=).with(:session_id, nil)
-      middleware.call('HTTP_X_SESSION_ID' => session_id)
+      expect(Thread.current).to receive(:[]=).with(:client_id, nil)
+      middleware.call({ 'HTTP_X_SESSION_ID' => session_id, 'HTTP_X_CLIENT_ID' => client_id })
     end
 
-    it 'sets the X-Session-Id header in the response' do
-      status, headers, body = middleware.call('HTTP_X_SESSION_ID' => session_id)
+    it 'sets the X-Session-Id and X-Client-Id headers in the response' do
+      status, headers, body = middleware.call({ 'HTTP_X_SESSION_ID' => session_id, 'HTTP_X_CLIENT_ID' => client_id})
       expect(headers['X-Session-Id']).to eq session_id
+      expect(headers['X-Client-Id']).to eq client_id
     end
 
     context 'when an exception is raised' do
       it 'still sets the session_id back to nil' do
         expect(Thread.current).to receive(:[]=).with(:session_id, session_id)
+        expect(Thread.current).to receive(:[]=).with(:client_id, client_id)
         expect(app).to receive(:call).and_raise
         expect(Thread.current).to receive(:[]=).with(:session_id, nil)
-        expect { middleware.call('HTTP_X_SESSION_ID' => session_id) }.to raise_error(RuntimeError)
+        expect(Thread.current).to receive(:[]=).with(:client_id, nil)
+        expect { middleware.call({ 'HTTP_X_SESSION_ID' => session_id, 'HTTP_X_CLIENT_ID' => client_id}) }.to raise_error(RuntimeError)
       end
     end
 

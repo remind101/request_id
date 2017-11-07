@@ -7,22 +7,16 @@ module Sidekiq
         end
 
         def call(worker, item, queue, redis_pool = nil)
-          item[id_key] = id_value if id_value
+          @options[:headers].each do |kv|
+            item[kv[:key].to_s] = kv[:value].call() if kv[:value]
+          end
           yield
         end
 
       private
 
-        def id_key
-          @options[:key].to_s
-        end
-
-        def id_value
-          @options[:value].call()
-        end
-
         def default_options
-          { key: :request_id, value: lambda { ::RequestId.request_id } }
+          { headers: [ { key: :request_id, value: lambda { ::RequestId.request_id } } ] }
         end
       end
     end

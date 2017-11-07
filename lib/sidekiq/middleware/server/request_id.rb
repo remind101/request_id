@@ -17,16 +17,20 @@ module Sidekiq
         end
 
         def call(worker, item, queue)
-          ::RequestId.set(@options[:key], @options[:value].call(item))
+          @options[:headers].each do |kv|
+            ::RequestId.set(kv[:key], kv[:value].call(item))
+          end
           yield
         ensure
-          ::RequestId.set(@options[:key], nil) unless self.class.no_reset
+          @options[:headers].each do |kv|
+            ::RequestId.set(kv[:key], nil) unless self.class.no_reset
+          end
         end
 
         private
 
           def default_options
-            { key: :request_id, value: lambda { |item| item['request_id'] } }
+            { headers: [ { key: :request_id, value: lambda { |item| item['request_id'] } } ] }
           end
       end
     end
