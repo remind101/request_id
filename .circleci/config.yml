@@ -1,0 +1,123 @@
+version: 2
+
+test-parallelism: &TEST_PARALLELISM 1
+
+ruby-image: &RUBY_IMAGE remind101/ruby-ci:2.3.3
+
+all_job_common: &ALL_JOB_COMMON
+  working_directory: ~/request_id
+
+workflows:
+  version: 2
+  build-and-test:
+    jobs:
+      - build
+      - bundle_audit_check:
+          requires:
+            - build
+      - rspec:
+          requires:
+            - build
+      - track_rspec_success:
+          requires:
+            - rspec
+
+jobs:
+  build:
+    <<: *ALL_JOB_COMMON
+
+    docker:
+      - image: *RUBY_IMAGE
+
+    steps:
+      - checkout
+
+      - type: cache-restore
+        key: Gemfile.lock-{{ checksum "Gemfile.lock" }}
+      - run: bundle check --path=vendor/bundle || bundle install --path=vendor/bundle --jobs=4 --retry=3
+      - type: cache-save
+        key: Gemfile.lock-{{ checksum "Gemfile.lock" }}
+        paths:
+          - ~/request_id/vendor/bundle
+
+      - run: cp -f config/circleci/database.yml config/database.yml
+
+      # save the entire project. the rest of the steps won't check out the
+      # codebase, but rather will download the source code from the circleci
+      # cache.
+      - persist_to_workspace:
+          root: ~/request_id
+          paths:
+            - .
+
+  bundle_audit_check:
+    <<: *ALL_JOB_COMMON
+
+    docker:
+      - image: *RUBY_IMAGE
+
+    steps:
+      # TODO: get the codebase from the cache and set up bundler. this is
+      # shared between several jobs so we could pull it out.
+      - attach_workspace:
+          at: ~/request_id
+      - run: bundle install --path vendor/bundle
+
+      - run: bundle exec bundle-audit check --update
+
+  rspec:
+    <<: *ALL_JOB_COMMON
+
+    docker:
+      # TODO: can we use yaml references to extract out the following? this is
+      # the same for both rspec and cucumber.
+      - image: *RUBY_IMAGE
+
+    parallelism: *TEST_PARALLELISM
+    steps:
+      # TODO: get the codebase from the cache and set up bundler. this is
+      # shared between several jobs so we could pull it out.
+      - attach_workspace:
+          at: ~/request_id
+
+      # success caching: if the exact same file content had a successful test
+      # run, then skip the tests. good for a quick deploy when tests have
+      # already run against a branch already on top of master.
+      - run: git ls-tree -r HEAD | sort | md5sum > .file-content-sha
+      - type: cache-restore
+        key: rspec-success-{{ checksum ".file-content-sha" }}
+      - run: (test -e /tmp/success/success && circleci step halt) || true
+
+      - run: bundle install --path vendor/bundle
+
+      - run: mkdir -p /tmp/test-results
+
+      - run: circleci tests glob "spec/**/*_spec.rb" | circleci tests split --split-by=timings > .specs_to_run
+      - run: echo "running $(cat .specs_to_run)"
+      - run: bundle exec rspec --colour --profile 10 --format RspecJunitFormatter --out /tmp/test-results/rspec.xml --format progress $(cat .specs_to_run)
+
+      - store_test_results:
+          path: /tmp/test-results
+
+  # TODO: this is duplicated between rspec and cucumber. isn't there some way
+  # we could extract out this logic?
+  #
+  # this step should require a successful rspec run, because it's going to
+  # record the fact that rspec ran successfully, allowing us to skip subsequent
+  # test runs on the exact same code
+  track_rspec_success:
+    <<: *ALL_JOB_COMMON
+    docker:
+      - image: *RUBY_IMAGE
+
+    steps:
+      # TODO: get the codebase from the cache and set up bundler. this is
+      # shared between several jobs so we could pull it out.
+      - attach_workspace:
+          at: ~/request_id
+      - run: git ls-tree -r HEAD | sort | md5sum > .file-content-sha
+      - run: mkdir -p /tmp/success && touch /tmp/success/success
+      - type: cache-save
+        key: rspec-success-{{ checksum ".file-content-sha" }}
+        paths:
+          - /tmp/success
