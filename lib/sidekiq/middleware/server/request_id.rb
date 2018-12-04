@@ -1,5 +1,5 @@
 begin
-  require 'sidekiq/middleware/server/logging'
+  require 'sidekiq/job_logger'
 rescue LoadError
   # No sidekiq
 end
@@ -7,7 +7,7 @@ end
 module Sidekiq
   module Middleware
     module Server
-      class RequestId < Logging
+      class RequestId < ::Sidekiq::JobLogger
         class << self
           attr_accessor :no_reset
         end
