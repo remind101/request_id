@@ -1,4 +1,4 @@
-FROM ruby:2.3.3
+FROM ruby:2.4.9
 MAINTAINER Terrance Niechciol <terrance@remind101.com>
 
 RUN apt-get update && \
