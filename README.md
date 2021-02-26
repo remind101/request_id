@@ -1,3 +1,5 @@
+# Deprecated and looking for new maintainers!
+
 # RequestId
 
 This is a gem with a collection of middleware for easily cascading [Heroku request id's](https://devcenter.heroku.com/articles/http-request-id)
