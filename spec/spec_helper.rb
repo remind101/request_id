@@ -1,6 +1,9 @@
 # Ensure the Sidekiq module is defined.
 module Sidekiq; end
 
+# Ensure the Shoryuken module is defined.
+module Shoryuken; end
+
 require 'bundler/setup'
 Bundler.require :default, :test
 

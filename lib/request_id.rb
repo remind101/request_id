@@ -1,5 +1,6 @@
 require 'request_id/version'
 require 'request_id/sidekiq' if defined?(Sidekiq)
+require 'request_id/shoryuken' if defined?(Shoryuken)
 
 module Rack
   autoload :RequestId, 'rack/request_id'
@@ -94,6 +95,5 @@ module RequestId
     def configure
       yield configuration
     end
-
   end
 end
